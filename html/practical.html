@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Github user search</title>
+  </head>
+
+  <body>
+    <!-- search for a user in github and display their profile -->
+    <h1>Github user search</h1>
+    <div class="search-box">
+      <input type="text" id="username" placeholder="Enter github username" />
+      <button id="searchBtn">Search</button>
+    </div>
+    <div id="error"></div>
+    <div id="result">
+      <img src="" alt="Avatar" id="avatar" />
+      <h2 id="name"></h2>
+      <p><a target="_blank" id="profileLink">View Profile</a></p>
+    </div>
+ <script>
+    const usernameInput = document.getElementById('username');
+    const searchBtn = document.getElementById('searchBtn');
+    const resultDiv = document.getElementById('result');
+    const avatarImg = document.getElementById('avatar');
+    const nameEl = document.getElementById('name');
+    const profileLink = document.getElementById('profileLink');
+    const errorEl = document.getElementById('error');
+
+    // fetch user data from github
+    const fetchGitHubUser = async(username) => {
+      try {
+        const response = await fetch(`https://api.github.com/users/${username}`);
+        if(!response.ok){
+            if(response.status === 404){
+                throw new Error("User not found");
+            } else {
+                throw new Error("Failed to fetch");
+            }
+        }
+        const userData = await response.json();
+        return userData;
+      } catch(error) {
+        throw error;
+      }
+    }
+
+    // Add event listener to the search button
+    searchBtn.addEventListener('click', async () => {
+      const username = usernameInput.value.trim();
+      if (!username) {
+        errorEl.textContent = "Please enter a username";
+        return;
+      }
+
+      try {
+        // Clear previous error and show loading state
+        errorEl.textContent = "";
+        resultDiv.classList.remove('show');
+
+        // Fetch user data
+        const user = await fetchGitHubUser(username);
+
+        // Display user data
+        avatarImg.src = user.avatar_url;
+        nameEl.textContent = user.name || user.login;  // Use login if name is not available
+        profileLink.href = user.html_url;
+
+        // Show the result div
+        resultDiv.classList.add('show');
+      } catch (error) {
+        errorEl.textContent = error.message;
+        resultDiv.classList.remove('show');  // Hide result on error
+      }
+    });
+
+    // Allow search on pressing Enter key
+    usernameInput.addEventListener('keypress', async (event) => {
+      if (event.key === 'Enter') {
+        searchBtn.click();
+      }
+    });
+ </script>
+
+  </body>
+</html>
+<style>
+  body {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+      Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue",
+      sans-serif;
+    max-width: 600px;
+    margin: 40px auto;
+    padding: 20px;
+    background-color: #f1f1f1;
+  }
+  h1 {
+    text-align: center;
+    color: aqua;
+  }
+  .search-box {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  input {
+    flex: 1;
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+  }
+  button {
+    padding: 10px 16px;
+    background: #2ea44f;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+  }
+  button:hover {
+    background: #2c974b;
+  }
+  #result {
+    background: white;
+    border: 1px solid #d0d7de;
+    border-radius: 6px;
+    padding: 20px;
+    text-align: center;
+    display: none;
+  }
+  #result.show {
+    display: block;
+  }
+#result img{
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    margin-bottom: 15px;
+}
+#error{
+    color: #cf222e;
+    text-align: center;
+    margin-top: 10px;
+    min-height: 24px;
+}
+</style>
